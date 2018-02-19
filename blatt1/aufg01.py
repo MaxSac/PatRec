@@ -1,6 +1,7 @@
 from common.data_provider import DataProvider
 from common.classifiers import KNNClassifier 
 from common.evaluation import ClassificationEvaluator
+from common.evaluation import CrossValidation
 import matplotlib.pyplot as plt
 
 
@@ -72,7 +73,11 @@ def aufg01():
     # In den folgenden Aufgaben ist es Ihnen freigestellt, ob Sie Kreuzvalidierung
     # nutzen oder direkt auf den Testdaten optimieren.
 
-    raise NotImplementedError('Implement me')
+    cross_vali = CrossValidation(train_data, train_labels, 5)
+
+    over_all_result, class_result = cross_vali.validate(
+            KNNClassifier(k_neighbors=10, metric='euclidean'))
+    print(over_all_result)
 
 
 if __name__ == '__main__':
