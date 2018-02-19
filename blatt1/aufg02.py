@@ -5,7 +5,7 @@ from common import visualization
 from common.classifiers import GaussianClassifier
 from common.data_provider import DataProvider
 from common.evaluation import ClassificationEvaluator
-
+from common.visualization import plot_norm_dist_ellipse
 
 def aufg02():
     # In dieser Aufgabe soll ein Bayes'scher Normalverteilungs-Klassifikator
@@ -23,7 +23,9 @@ def aufg02():
     # Nuetzliche Funktionen:
     # https://docs.scipy.org/doc/numpy/reference/generated/numpy.unique.html
 
-    raise NotImplementedError('Implement me')
+    labels = np.unique(train_labels)
+
+    # raise NotImplementedError('Implement me')
 
     mean_list = []
     cov_list = []
@@ -35,21 +37,37 @@ def aufg02():
         # lokalen Variablen mean und die Kovarianzmatrix in der lokalen Variablen
         # cov. Benutzen Sie zur Schaetzung die korrigierte Kovarianzmatrix:
         # https://de.wikipedia.org/wiki/Stichprobenkovarianz#Korrigierte_Stichprobenkovarianz
+        
+        class_data = train_data[train_labels==label]
+        mean = np.mean(class_data, axis=0)
+        cov = np.cov(class_data, rowvar=0)
 
-        raise NotImplementedError('Implement me')
+        # raise NotImplementedError('Implement me')
+        
+        # -----------------------nachfragen---------------------------
         np.testing.assert_almost_equal(actual=mean,
                                        desired=np.mean(class_data, axis=0),
                                        err_msg='Der Mittelwert ist falsch')
         np.testing.assert_almost_equal(actual=cov,
                                        desired=np.cov(class_data, rowvar=0),
                                        err_msg='Die Kovarianzmatrix ist falsch')
+
         mean_list.append(mean)
         cov_list.append(cov)
 
-    #
     # Visualisieren Sie die Datenpunkte der drei Klassen, sowie die geschaetzen
     # Mittelwerte und Kovarianzmatrizen durch eine Normalverteilung.
     # Zur Visualisierung der Normalverteilungen: visualization.plot_norm_dist_ellipse
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    colors = ['#FF0000', '#00FF00', '#0000FF'] 
+    for label, color in zip(labels, colors):
+        class_data = train_data[train_labels==label]
+        ax.scatter(class_data[:,0], class_data[:,1], c=color, edgecolor= (0,0,0))
+    plot_norm_dist_ellipse(ax, mean_list, cov_list, colors)
+
+    plt.show()
 
     raise NotImplementedError('Implement me')
 
