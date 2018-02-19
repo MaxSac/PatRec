@@ -77,7 +77,8 @@ def aufg01():
 
     over_all_result, class_result = cross_vali.validate(
             KNNClassifier(k_neighbors=10, metric='euclidean'))
-    print(over_all_result)
+    print("Over all result:".format(over_all_result))
+    print("class_result:".format(class_result))
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ from common.classifiers import GaussianClassifier
 from common.data_provider import DataProvider
 from common.evaluation import ClassificationEvaluator
 from common.visualization import plot_norm_dist_ellipse
+from common.evaluation import CrossValidation
 
 def aufg02():
     # In dieser Aufgabe soll ein Bayes'scher Normalverteilungs-Klassifikator
@@ -69,9 +70,9 @@ def aufg02():
 
     plt.show()
 
-    raise NotImplementedError('Implement me')
+    # raise NotImplementedError('Implement me')
 
-    #
+    
     # Implementieren sie einen Bayes'schen Normalverteilungs-Klassifikator (ohne
     # Rueckweisung), der die soeben berechneten Verteilungen als Modell
     # verwendet.  Vervollstaendigen Sie dazu die Klasse GaussianClassifier im Modul
@@ -94,9 +95,18 @@ def aufg02():
     bayes.estimate(train_data, train_labels)
     estimated_labels = bayes.classify(test_data)
 
-    #
+    
     # Fuehren Sie eine Evaluierung der Ergebnisse wie in Aufgabe 1 durch.
-    raise NotImplementedError('Implement me')
+    evaluator = ClassificationEvaluator(estimated_labels, test_labels_gt)
+
+    print("Error rate {}".format(evaluator.error_rate()))
+    print("Category error rate {}".format(evaluator.category_error_rates()))
+
+    crossvali = CrossValidation(train_data, train_labels, 5)
+
+    over_all_result, class_result = crossvali.validate(GaussianClassifier())
+
+    print(over_all_result)
 
     # Ist der erstellte Klassifikator fuer diese Daten geeignet? Vergleichen Sie
     # die Ergebnisse mit dem (k)-NN-Klassifikator.

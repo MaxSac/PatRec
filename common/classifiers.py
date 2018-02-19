@@ -4,6 +4,8 @@ from collections import defaultdict
 from scipy.spatial.distance import cdist
 from common import log_math
 from common.nn_layers import FullyConnectedLayer
+#--------------------------------------------------
+from scipy.stats import multivariate_normal
 
 
 ###############################################################################
@@ -99,7 +101,10 @@ class GaussianClassifier(object):
         Initialisiert den Klassifikator
         Legt Klassenvariablen fuer die Modellparameter an.
         '''
-        raise NotImplementedError('Implement me')
+        self.means = []
+        self.covs = []
+        
+        #raise NotImplementedError('Implement me')
 
     def estimate(self, train_samples, train_labels):
         '''
@@ -117,7 +122,19 @@ class GaussianClassifier(object):
 
         mit d Trainingsbeispielen und t dimensionalen Merkmalsvektoren.
         '''
-        raise NotImplementedError('Implement me')
+        self.labels = np.unique(train_labels)
+        self.means=[]
+        self.covs=[]
+        for label in self.labels:
+            
+            class_data = train_samples[train_labels==label]
+            mean = np.mean(class_data, axis=0)
+            cov = np.cov(class_data, rowvar=0)
+ 
+            self.means.append(mean)
+            self.covs.append(cov)
+
+        #raise NotImplementedError('Implement me')
 
     def classify(self, test_samples):
         '''Klassifiziert Test Daten.
@@ -131,7 +148,7 @@ class GaussianClassifier(object):
 
         mit d Testbeispielen und t dimensionalen Merkmalsvektoren.
         '''
-        #
+        
         # Werten Sie die Dichten aus und klassifizieren Sie die
         # Testdaten.
         #
@@ -144,8 +161,16 @@ class GaussianClassifier(object):
         # Erstellen Sie fuer die Auswertung der transformierten Normalverteilung
         # eine eigene Funktion. Diese wird in den folgenden Aufgaben noch von
         # Nutzen sein.
+        
+        pdf = []
+        for mean, cov in zip(self.means, self.covs):
+            rv = multivariate_normal(mean, cov)
+            pdf.append(rv.pdf(test_samples))
+        pdf_label = np.argmax(pdf, axis=0)
 
-        raise NotImplementedError('Implement me')
+        return self.labels[pdf_label]
+
+        # raise NotImplementedError('Implement me')
 
 
 class MDClassifierClassIndep(object):
