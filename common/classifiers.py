@@ -5,7 +5,6 @@ from scipy.spatial.distance import cdist
 from common import log_math
 from common.nn_layers import FullyConnectedLayer
 #--------------------------------------------------
-from scipy.stats import multivariate_normal
 
 
 ###############################################################################
@@ -103,6 +102,7 @@ class GaussianClassifier(object):
         '''
         self.means = []
         self.covs = []
+        self.a_priori = []
         
         #raise NotImplementedError('Implement me')
 
@@ -125,14 +125,18 @@ class GaussianClassifier(object):
         self.labels = np.unique(train_labels)
         self.means=[]
         self.covs=[]
+        self.a_priori = []
         for label in self.labels:
             
             class_data = train_samples[train_labels==label]
             mean = np.mean(class_data, axis=0)
             cov = np.cov(class_data, rowvar=0)
- 
+            a_priori = np.float32(len(class_data))/np.float32(len(train_samples))
+
             self.means.append(mean)
             self.covs.append(cov)
+            self.a_priori.append(a_priori)
+
 
         #raise NotImplementedError('Implement me')
 
@@ -162,12 +166,18 @@ class GaussianClassifier(object):
         # eine eigene Funktion. Diese wird in den folgenden Aufgaben noch von
         # Nutzen sein.
         
-        pdf = []
-        for mean, cov in zip(self.means, self.covs):
-            rv = multivariate_normal(mean, cov)
-            pdf.append(rv.pdf(test_samples))
-        pdf_label = np.argmax(pdf, axis=0)
+        def multivariate_normal(x, mean, cov, a_priori=1):
+            d = len(mean)
+            return np.log(a_priori) - 0.5*np.log((2*np.pi)**d*np.linalg.det(cov))   \
+                    - 0.5*np.diag(np.dot((x - mean), np.dot(np.linalg.inv(cov),     \
+                    np.transpose(x - mean))))
 
+        pdf = []
+        for mean, cov, a_priori in zip(self.means, self.covs, self.a_priori):
+            pdf.append(multivariate_normal(test_samples, mean, cov, a_priori))
+
+        pdf_label = np.argmax(pdf, axis=0)
+        
         return self.labels[pdf_label]
 
         # raise NotImplementedError('Implement me')
@@ -185,6 +195,8 @@ class MDClassifierClassIndep(object):
             num_densities: Anzahl von Mischverteilungskomponenten, die verwendet
                 werden sollen.
         '''
+        self.quantizer = quantizer
+        self.num_densities = num_densities
         raise NotImplementedError('Implement me')
 
     def estimate(self, train_samples, train_labels):
@@ -196,7 +208,7 @@ class MDClassifierClassIndep(object):
                 fuer das Duck-Typing
 
         Params:
-            train_samples: ndarray, das Merkmalsvektoren zeilenweise enthaelt (d x t).
+            train_samples: ndarray, das Merkmalsvektoren zeilenweise enthaelt (*d x t).
             train_labels: ndarray (1-Dimensional), das Klassenlabels enthaelt
                 (d Komponenten, train_labels.shape=(d,) ).
 
