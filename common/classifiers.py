@@ -93,6 +93,16 @@ class KNNClassifier(object):
 #                     STATISTISCHE KLASSIFIKATOREN                            #
 #                          Aufg. 2 - 4                                        #
 ###############################################################################
+
+def multivariate_normal(x, mean, cov, a_priori=1):
+    d = len(mean)
+    if(a_priori <=1e-5):
+        return np.zeros(len(x))-1000
+    else:
+        return np.log(a_priori) - 0.5*np.log((2*np.pi)**d*np.linalg.det(cov))   \
+            - 0.5*np.diag(np.dot((x - mean), np.dot(np.linalg.inv(cov),         \
+            np.transpose(x - mean))))
+
 class GaussianClassifier(object):
 
     def __init__(self):
@@ -127,7 +137,6 @@ class GaussianClassifier(object):
         self.covs=[]
         self.a_priori = []
         for label in self.labels:
-            
             class_data = train_samples[train_labels==label]
             mean = np.mean(class_data, axis=0)
             cov = np.cov(class_data, rowvar=0)
@@ -166,11 +175,6 @@ class GaussianClassifier(object):
         # eine eigene Funktion. Diese wird in den folgenden Aufgaben noch von
         # Nutzen sein.
         
-        def multivariate_normal(x, mean, cov, a_priori=1):
-            d = len(mean)
-            return np.log(a_priori) - 0.5*np.log((2*np.pi)**d*np.linalg.det(cov))   \
-                    - 0.5*np.diag(np.dot((x - mean), np.dot(np.linalg.inv(cov),     \
-                    np.transpose(x - mean))))
 
         pdf = []
         for mean, cov, a_priori in zip(self.means, self.covs, self.a_priori):
@@ -197,7 +201,7 @@ class MDClassifierClassIndep(object):
         '''
         self.quantizer = quantizer
         self.num_densities = num_densities
-        raise NotImplementedError('Implement me')
+        #raise NotImplementedError('Implement me')
 
     def estimate(self, train_samples, train_labels):
         '''Erstellt den Mischverteilungsklassifikator mittels Trainingdaten.
@@ -214,10 +218,10 @@ class MDClassifierClassIndep(object):
 
         mit d Trainingsbeispielen und t dimensionalen Merkmalsvektoren.
         '''
-        #
+        
         # Diese Methode soll das Training eines Mischverteilungsklassifikators
         # mit klassenunabhaengigen Komponentendichten implementieren (siehe Skript S. 67 f.).
-        #
+        
         # Die folgenden Funtionen koennen bei der Implementierung von Nutzen
         # sein:
         # http://docs.scipy.org/doc/numpy/reference/generated/numpy.exp.html
@@ -226,24 +230,60 @@ class MDClassifierClassIndep(object):
         # http://docs.scipy.org/doc/numpy/reference/generated/numpy.linalg.slogdet.html
         # http://docs.scipy.org/doc/numpy/reference/generated/numpy.bincount.html
 
-        #
+        
         # Schaetzen Sie das GMM der Trainingsdaten.
-        #
+       
         # Wieviele Datenpunkte werden zur Schaetzung jeder Normalverteilung mindestens
         # benoetigt und welche Eigenschaften muessen diese haben?
         # Beruecksichtigen Sie das in Ihrer Implementierung.
 
-        raise NotImplementedError('Implement me')
+        self.means = self.quantizer.cluster(train_samples, self.num_densities)
+        self.mean = self.means
 
-        #
+        dist = cdist(self.means, train_samples)
+        cluster_number = np.argmin(dist, axis = 0)
+
+        # berechne covs
+        self.covs = []
+        for x in np.unique(cluster_number):
+            self.covs.append(np.cov(train_samples[x == cluster_number], rowvar=0))
+        self.cov = self.covs
+
+
+        #raise NotImplementedError('Implement me')
+
         # Bestimmen Sie fuer jede Klasse die spezifischen Mischungsgewichte.
         # Beachten Sie, dass die Dichteauswertung wieder ueber eine geeignete
         # monotome Transformationsfunktion geschehen soll. Verwenden Sie hierfuer
         # die Funktion, die Sie bereits fuer den GaussianClassifier implementiert
         #
         # Achten Sie darauf, dass sich die Mischungsgewichte zu 1 addieren.
+        
+        # berechne gewichte fuer einezelen cluster
+        self.cluster_weights = []
+        self.train_labels = np.unique(train_labels)
+        for train_label in self.train_labels:
+            self.cluster_weights.append(np.bincount(cluster_number[train_label ==
+                train_labels], minlength = self.num_densities))
+        
+        # normiere gewichte
+        self.cluster_weights = np.divide(
+                np.transpose(np.array(self.cluster_weights)).astype(np.float32),    \
+                np.sum(self.cluster_weights, axis= 1).astype(np.float32)
+                )
 
-        raise NotImplementedError('Implement me')
+        #raise NotImplementedError('Implement me')
+    
+    def calc_pdf(self, test_samples): 
+        pdf = np.zeros([len(self.train_labels), len(test_samples)])-1000 # -1000 wegen log 
+        for mean, cov, weights in zip(self.means, self.covs,self.cluster_weights): 
+            pdf_cluster_label = []
+            for weight in weights:
+                pdf_cluster_label.append(multivariate_normal(test_samples, mean,
+                    cov, weight))
+            mask = pdf <= pdf_cluster_label
+            pdf[mask] = np.array(pdf_cluster_label)[mask]
+        return pdf
 
     def classify(self, test_samples):
         '''Klassifiziert Test Daten.
@@ -257,7 +297,16 @@ class MDClassifierClassIndep(object):
 
         mit d Testbeispielen und t dimensionalen Merkmalsvektoren.
         '''
-        raise NotImplementedError('Implement me')
+        pdf = np.zeros([len(self.train_labels), len(test_samples)])-1000 # -1000 wegen log 
+        for mean, cov, weights in zip(self.means, self.covs,self.cluster_weights): 
+            pdf_cluster_label = []
+            for weight in weights:
+                pdf_cluster_label.append(multivariate_normal(test_samples, mean,
+                    cov, weight))
+            mask = pdf <= pdf_cluster_label
+            pdf[mask] = np.array(pdf_cluster_label)[mask]
+        return self.train_labels[np.argmax(pdf, axis=0)]
+        #raise NotImplementedError('Implement me')
 
 
 class MDClassifierClassDep(object):
@@ -272,7 +321,10 @@ class MDClassifierClassDep(object):
             num_densities: Anzahl von Mischverteilungskomponenten, die je Klasse
                 verwendet werden sollen.
         '''
-        raise NotImplementedError('Implement me')
+
+        self.quantizer = quantizer 
+        self.num_densities = num_densities
+        #raise NotImplementedError('Implement me')
 
     def estimate(self, train_samples, train_labels):
         '''Erstellt den Mischverteilungsklassifikator mittels Trainingdaten.
@@ -293,8 +345,17 @@ class MDClassifierClassDep(object):
         # Schaetzen Sie die jeweils ein GMM fuer jede Klasse.
         #
         # Tipp: Verwenden Sie die bereits implementierte Klasse MDClassifierClassIndep
+        self.labels = np.unique(train_labels)
+        
+        self.mdc_array = []
+        for label, num_densitie in zip(self.labels, self.num_densities):
+            mdc = MDClassifierClassIndep(self.quantizer, num_densitie)
+            cluster_labels = train_labels[train_labels == label]
+            cluster_samples = train_samples[train_labels == label]
+            mdc.estimate(cluster_samples, cluster_labels)
+            self.mdc_array.append(mdc)
 
-        raise NotImplementedError('Implement me')
+        # raise NotImplementedError('Implement me')
 
     def classify(self, test_samples):
         '''Klassifiziert Test Daten.
@@ -308,7 +369,13 @@ class MDClassifierClassDep(object):
 
         mit d Testbeispielen und t dimensionalen Merkmalsvektoren.
         '''
-        raise NotImplementedError('Implement me')
+        
+        pdf = []
+        for mdc in self.mdc_array:
+            pdf.append(mdc.calc_pdf(test_samples))
+        return self.labels[np.argmax(pdf, axis=0)]
+
+        # raise NotImplementedError('Implement me')
 
 ###############################################################################
 #                           NEURONALE NETZE                                   #

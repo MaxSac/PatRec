@@ -148,4 +148,3 @@ class ClassificationEvaluator(object):
             cat_n_err_list.append((category, err, n_wrong, n_samples))
 
         return cat_n_err_list
-
