@@ -55,7 +55,7 @@ def aufg03():
     # Nuetzliche Funktionen:
     # https://docs.scipy.org/doc/numpy/reference/generated/numpy.argmin.html
 
-    dist = cdist(train_data, codebook)
+    dist = cdist(train_data[0], codebook)
     labels = np.argmin(dist, axis=1)
     # raise NotImplementedError('Implement me')
 

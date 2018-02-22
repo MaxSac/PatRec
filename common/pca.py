@@ -23,7 +23,15 @@ class PCA(object):
         # spaeter benoetigen, in entsprechenden Klassenvariablen.
         # Achten Sie darauf, dass alle Klassenvariablen sinnvoll belegt werden.
 
-        raise NotImplementedError('Implement me')
+        self.samples = samples
+        self.train_mean = np.mean(samples, axis=0)
+        self.samples -= self.train_mean 
+        self.train_cov = np.cov(self.samples, rowvar=0)
+        self.eig_vals, self.eig_vecs = np.linalg.eig(self.train_cov)
+
+        self.eig_vecs = self.eig_vecs[np.argsort(self.eig_vals)][::-1]
+        self.eig_vals = self.eig_vals[np.argsort(self.eig_vals)][::-1]
+        #raise NotImplementedError('Implement me')
 
     def transform_samples(self, samples, target_dim):
         if samples.shape[1] != self.eig_vecs.shape[0]:
@@ -31,10 +39,14 @@ class PCA(object):
         if target_dim < 1 or target_dim > samples.shape[1]:
             raise ValueError('Invalid target dimension')
 
-        #
         # Implementieren Sie die Dimensionsreduktion
         # Ueberlegen Sie, wie man die gesamte samples Matrix in einem transformiert (ohne Schleife)
-        raise NotImplementedError('Implement me')
+        print self.eig_vecs.shape
+        self.eig_vecs = self.eig_vecs[:,:target_dim]
+        print self.eig_vecs.shape
+        return np.dot(np.transpose(self.eig_vecs), np.transpose(samples))
+
+        #raise NotImplementedError('Implement me')
 
 
     def plot_subspace(self, limits, color, linewidth, alpha, ellipsoid=True, coord_system=True, target_dim=None):

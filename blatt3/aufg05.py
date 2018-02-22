@@ -5,6 +5,7 @@ from common.data_provider import DataProvider
 from common.pca import PCA
 
 
+
 def aufg05():
     #
     # Realisieren Sie eine Hauptachsen-Transformation (PCA) in der Klasse PCA.
@@ -37,8 +38,13 @@ def aufg05():
     # Das Laden des Datensatzes kann einige Sekunden in Anspruch nehmen.
     # Mit show_data(data, width) koennen Sie Bilder anzeigen lassen. Die Anzahl der
     # Bilder muss ein Vielfaches des Parameters width sein.
+
     train_data_provider = DataProvider(DataProvider.MNIST_TRAIN)
-    raise NotImplementedError('Implement me')
+    train_data, train_label = train_data_provider.get_dataset_and_labels()[:10000]
+    show_data(train_data[:10],10)
+    plt.show()
+
+    #raise NotImplementedError('Implement me')
 
     # Transformieren Sie die 784-dimensionalen Daten des MNIST-Datensatzes in
     # einen geeignet gewaehlten niedriger-dimensionalen Merkmalsraum. Begruenden
@@ -56,8 +62,19 @@ def aufg05():
 
     # Optional: Visualisieren Sie die MNIST-Daten in einem 2D Unterraum. Faerben Sie
     # die Datenpunkte nach Klassenzugehoerigkeit.
+    train_data = train_data.astype(np.float64)
+    pca = PCA(train_data)
+    samplezweid = np.transpose(pca.transform_samples(train_data, 2))
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    for label in np.unique(train_label):
+        class_data = samplezweid[train_label==label]
+        ax.scatter(class_data[:,0], class_data[:,1], label=label, alpha=0.6)
+    plt.legend()
+    plt.show()
 
-    raise NotImplementedError('Implement me')
+#    raise NotImplementedError('Implement me')
 
 
 def show_data(data, width=1):
