@@ -3,7 +3,7 @@ import NeuronalNet as NN
 
 L2 = NN.EuclideanLoss()
 
-Perc = NN.Perceptron(2, 2,NN.SigmoidLayer(),L2,1,1,1)
+Perc = NN.Perceptron(4, 2,NN.SigmoidLayer(),L2,1,1,1)
 #print(Perc.forward(np.array([[7,11],[7,11]])))
 #Perc.estimate(np.array([[7,11],[7,11]]), [[1,1],[1,1]])
 
@@ -15,4 +15,5 @@ Perc = NN.Perceptron(2, 2,NN.SigmoidLayer(),L2,1,1,1)
 print('Weights: ')
 print(Perc.fc_lay.weights)
 print('-------------------------------')
-Perc.estimate(np.array([[7,11]]),np.array([[1,2]]))
+Perc.estimate(np.array([[7,11,1,2], [2,11,1,7]]),np.array([[1,0], [0,1]]))
+#Perc.estimate(np.array([[7,11,1,2]]),np.array([[1,0]]))

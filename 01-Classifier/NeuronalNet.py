@@ -44,28 +44,24 @@ class Perceptron:
 
     def backward(self, topgradient=None):
         if(topgradient==None):
+            # Useless but nice to have
             grad_loss = self.loss.gradient()
-            print('grad loss:', grad_loss.shape)
-            print(grad_loss)
             grad_acti = self.activation_function.backward()
-            print('grad activation', grad_acti.shape)
-            print(grad_acti)
             grad_full = self.fc_lay.backward()
-            print('grad fully', grad_full.shape)
-            print(grad_full)
-            print('-------------------------------')
-            print('delta_out')
+
+            # Usefull math
             delta_out = grad_acti*grad_loss
-            print(delta_out)
-            print('delta_out * input fc')
-            delta_weights = delta_out*np.transpose(self.fc_lay.data)
-            print(delta_weights)
+            delta_weights = np.dot(np.transpose(delta_out), self.fc_lay.data)
+            self.fc_lay.weights -= np.transpose(delta_weights)
 
 
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
+        print('y_pred: ', y_pred)
         self.loss.loss(y_pred, train_labels)
         self.backward()
+        y_pred = self.forward(train_samples)
+        print('y_pred: ', y_pred)
 
 class EuclideanLoss(object):
     def __init__(self):
