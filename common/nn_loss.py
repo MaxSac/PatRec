@@ -32,7 +32,15 @@ class EuclideanLoss(object):
         # Nuetzliche Funktionen:
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.square.html
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.sum.html
-        raise NotImplementedError('Implement me')
+        self.y_label = y_label
+        self.y_pred = y_pred
+
+        diff = self.y_label - self.y_pred
+        square = np.square(diff)
+        sumed = np.sum(square)
+        
+        return 0.5*np.sqrt(sumed)
+        #raise NotImplementedError('Implement me')
 
     def gradient(self, scaling_factor=1.0):
         '''
@@ -43,7 +51,8 @@ class EuclideanLoss(object):
         #
         # Berechnen Sie den Gradienten des Euklidischen Fehlers bezueglich der
         # Vorhersage des neuronalen Netzes und geben Sie ihn zurueck.
-        raise NotImplementedError('Implement me')
+        return scaling_factor * (self.y_label - self.y_pred)
+        #raise NotImplementedError('Implement me')
 
 
 ################ BinaryCrossEntropyLoss ################

@@ -467,7 +467,7 @@ class NeuralNetworkBase(object):
         #
         # Nuetzliche Funktionen:
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.shuffle.html
-
+        
         raise NotImplementedError('Implement me')
 
         #
@@ -549,7 +549,9 @@ class NeuralNetworkBase(object):
         # Nuetzliche Funktionen:
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.argmax.html
 
-        raise NotImplementedError('Implement me')
+        pred_class = np.argmax(self.forward(test_samples), axis = 1)
+        return pred_class
+        #raise NotImplementedError('Implement me')
 
 
 class Perceptron(NeuralNetworkBase):
@@ -576,7 +578,10 @@ class Perceptron(NeuralNetworkBase):
         # Speichern Sie das Aktivierungsfunktionsobjekt in der
         # Klassenvariablen self.activation_function
 
-        raise NotImplementedError('Implement me')
+        self.activation_function = activation_function
+        self.ful = FullyConnectedLayer(n_input, n_output)
+
+        # raise NotImplementedError('Implement me')
 
     def forward(self, x_input):
         ''' Berechne die Ausgabe des Perceptrons (Forward Pass) '''
@@ -585,7 +590,12 @@ class Perceptron(NeuralNetworkBase):
         # Beachten Sie, dass die Aktivierungsfunktion None
         # ist, wenn eine lineare Aktivierung gewuenscht ist.
 
-        raise NotImplementedError('Implement me')
+        x_input_weight = self.ful.forward(x_input)
+        if(self.activation_function!=None):
+            x_input_weight = self.activation_function.forward(x_input_weight)
+        return x_input_weight
+
+        # raise NotImplementedError('Implement me')
 
     def backward(self, top_gradient):
         ''' Berechne die Gradienten der Gewichte und der Eingaben (Backward Pass) '''
@@ -598,7 +608,12 @@ class Perceptron(NeuralNetworkBase):
         # Beachten Sie, dass die Aktivierungsfunktion None
         # ist, wenn eine lineare Aktivierung gewuenscht ist.
 
-        raise NotImplementedError('Implement me')
+        top_gradient = self.activation_function.backward(top_gradient)
+        top_gradient = self.ful.backward(top_gradient)
+
+        return top_gradient
+
+        # raise NotImplementedError('Implement me')
 
     def apply_update(self, learning_rate, momentum):
         '''

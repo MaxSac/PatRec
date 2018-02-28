@@ -25,9 +25,14 @@ class FullyConnectedLayer(object):
         #
         # Nuetzliche Funktionen:
         # https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.random.normal.html
-        raise NotImplementedError('Implement me')
+    
+        self.n_input = n_input 
+        self.n_output = n_output
+        # plus 1 wegen dem bias
+        self.weights = np.random.normal(0, 0.01, size=(n_input+1, n_output)) 
+        #raise NotImplementedError('Implement me')
 
-        #
+        
         # Die folgenden Klassenvariablen werden fuer den Backpropagation
         # Algorithmus benoetigt
         self.x_input = None
@@ -52,14 +57,20 @@ class FullyConnectedLayer(object):
         # Nuetzliche Funktionen:
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.column_stack.html
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.ones.html
-        raise NotImplementedError('Implement me')
+        self.data = x_input
+        x_input_bias = np.column_stack((x_input, np.ones([x_input.shape[0],1])))
+
+        # raise NotImplementedError('Implement me')
 
         # Berechnen Sie die Linearkombination der von Daten und der Gewichte,
         # also die Ausgabe dieser Schicht, und geben Sie das Ergebnis zurueck
         #
         # Beachten Sie, dass die Daten row-major vorliegen, dass heisst, dass
         # die Matrix x_input die folgende Form hat: (n_samples, n_dimensions)
-        raise NotImplementedError('Implement me')
+        
+        x_output = np.dot(x_input_bias, self.weights)
+        return x_output
+        # raise NotImplementedError('Implement me')
 
     def backward(self, top_gradient):
         '''
@@ -68,7 +79,10 @@ class FullyConnectedLayer(object):
         #
         # Bestimmen Sie den Gradienten der Gewichte und speichern
         # Sie ihn in der Klassenvariablen self.gradient_weights.
-        raise NotImplementedError('Implement me')
+        
+        self.gradient_weights = top_gradient*self.weights
+
+        # raise NotImplementedError('Implement me')
 
         #
         # Die Rueckgabe dieser Funktion soll der Gradient in Bezug zur
@@ -76,7 +90,9 @@ class FullyConnectedLayer(object):
         # Berechnen Sie den Gradient der Eingabe fuer diese Schicht.
         # Dieser Gradient soll in der lokalen Variablen grad_data
         # gespeichert werden.
-        raise NotImplementedError('Implement me')
+        grad_data = self.gradient_weights - self.weights
+        
+        # raise NotImplementedError('Implement me')
 
         #
         # Der Gradient hat auch noch die Komponenten fuer die Biases.
@@ -118,6 +134,9 @@ class SigmoidLayer(object):
         ''' Konstruktur '''
         self.output = None
 
+    def sigmoid(x):
+        return 0.5*(1+np.tanh(x*0.5))
+
     def forward(self, x_input):
         '''
          Berechne den Forward Pass fuer die Sigmoid Schicht
@@ -131,7 +150,10 @@ class SigmoidLayer(object):
         #
         # Nuetzliche Funktionen:
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.exp.html
-        raise NotImplementedError('Implement me')
+        
+        self.output = sigmoid(x_input)
+        return self.output
+        # raise NotImplementedError('Implement me')
 
     def backward(self, top_gradient):
         '''
@@ -142,7 +164,9 @@ class SigmoidLayer(object):
         #
         # Implementieren Sie den Backward Pass durch die Sigmoid Schicht.
         # Tipp: Verwenden Sie die bereits im Forward Pass berechnete Ausgabe.
-        raise NotImplementedError('Implement me')
+        return top_gradient * self.output/(1-self.output)
+
+        #raise NotImplementedError('Implement me')
 
     def apply_update(self, learning_rate, momentum):
         #
