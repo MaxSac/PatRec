@@ -1,8 +1,8 @@
 import numpy as np
 class Fully_Connected_Layer(object):
     def __init__(self, n_input, n_output):
-        self.n_input = n_input 
-        self.n_output = n_output 
+        self.n_input = n_input
+        self.n_output = n_output
         self.weights = np.random.normal(0, 0.01, (n_input+1 ,n_output))
 
         #for backprop
@@ -54,7 +54,7 @@ class Perceptron:
 
         if not topgradient.all():
             topgradient = grad_acti*grad_loss
-            return topgradient 
+            return topgradient
         else:
             print('YEAAAAAAAAAHHHH')
 
@@ -63,7 +63,7 @@ class Perceptron:
         ergebnis = np.dot(np.transpose(topgradient),
                 self.fc_lay.backward())
         self.fc_lay.weights -= learning_rate *np.transpose(ergebnis)
-            
+
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
         self.loss.loss(y_pred, train_labels)
@@ -79,20 +79,20 @@ class MultilayerPerceptron:
                  # init the layers
         self.layers = []
         last_n = n_input
-        self.loss = loss 
+        self.loss = loss
         self.learning_rate = learning_rate
         for dim in n_hidden:
             self.layers.append(
-                    Perceptron(last_n, dim, activation_function_hidden, 
+                    Perceptron(last_n, dim, activation_function_hidden,
                         loss, batch_size, epochs, learning_rate)
             )
             last_n = dim
-            
+
         self.layers.append(
-               Perceptron(last_n, n_output, activation_function_output, 
+               Perceptron(last_n, n_output, activation_function_output,
                    loss, batch_size, epochs, learning_rate)
         )
-        
+
     def forward(self, x_input):
         for percep in self.layers:
             x_input = percep.forward(x_input)
@@ -103,9 +103,9 @@ class MultilayerPerceptron:
         for perc in self.layers[::-1]:
             topgradient = perc.backward(topgradient)
         return grad
-    
+
     def apply_update(self, learning_rate):
-        self.backward()
+        return self.backward()
 
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
