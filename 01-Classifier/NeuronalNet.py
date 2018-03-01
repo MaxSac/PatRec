@@ -5,6 +5,9 @@ class Fully_Connected_Layer(object):
         self.n_output = n_output 
         self.weights = np.random.normal(0, 0.01, (n_input+1 ,n_output))
 
+        #for backprop
+        self.gradient_weights = None
+
     def forward(self, x_input):
         self.data = np.column_stack((np.ones(x_input.shape[0]), x_input))
         return np.dot(self.data, self.weights)
@@ -26,6 +29,7 @@ class SigmoidLayer(object):
     def backward(self):
         return self.output*(1-self.output)
 
+
 class Perceptron:
     def __init__(self, n_input, n_output, activation_function, loss, batch_size,
             epochs, learning_rate):
@@ -42,27 +46,71 @@ class Perceptron:
         x_act_input = self.activation_function.forward(x_ful_input)
         return x_act_input
 
-    def backward(self, topgradient=None):
+    def backward(self, topgradient=np.array([[None]])):
         # Useless but nice to have
         grad_loss = self.loss.gradient()
         grad_acti = self.activation_function.backward()
         grad_full = self.fc_lay.backward()
 
-        if(topgradient==None):
+        if not topgradient.all():
             topgradient = grad_acti*grad_loss
             return topgradient 
         else:
-            topgradient*self.weights*self.activation_function.backward()
+            print('YEAAAAAAAAAHHHH')
+
+    def apply_update(self, learning_rate):
+        topgradient = self.backward()
+        ergebnis = np.dot(np.transpose(topgradient),
+                self.fc_lay.backward())
+        self.fc_lay.weights -= learning_rate *np.transpose(ergebnis)
             
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
         self.loss.loss(y_pred, train_labels)
-        topgradient = self.backward()
-        self.fc_lay.weights -= np.transpose(
-                np.dot(topgradient, self.fc_lay.backward()))
-        print(y_pred)
+        for x in range(self.epochs):
+            self.apply_update(self.learning_rate)
+
+class MultilayerPerceptron:
+    def __init__(self, n_input, n_hidden, n_output,
+                 activation_function_hidden,
+                 activation_function_output,
+                 loss,
+                 batch_size, epochs, learning_rate, momentum):
+                 # init the layers
+        self.layers = []
+        last_n = n_input
+        self.loss = loss 
+        self.learning_rate = learning_rate
+        for dim in n_hidden:
+            self.layers.append(
+                    Perceptron(last_n, dim, activation_function_hidden, 
+                        loss, batch_size, epochs, learning_rate)
+            )
+            last_n = dim
+            
+        self.layers.append(
+               Perceptron(last_n, n_output, activation_function_output, 
+                   loss, batch_size, epochs, learning_rate)
+        )
+        
+    def forward(self, x_input):
+        for percep in self.layers:
+            x_input = percep.forward(x_input)
+        return x_input
+
+    def backward(self, topgradient=np.array([[None]])):
+        grad = [None]
+        for perc in self.layers[::-1]:
+            topgradient = perc.backward(topgradient)
+        return grad
+    
+    def apply_update(self, learning_rate):
+        self.backward()
+
+    def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
-        print(y_pred)
+        self.loss.loss(y_pred, train_labels)
+        self.apply_update(self.learning_rate)
 
 class EuclideanLoss(object):
     def __init__(self):
@@ -75,13 +123,9 @@ class EuclideanLoss(object):
 
         squares = np.square(self.y_pred - self.y_label)
         loss = np.sum(squares, axis=0)/(2*squares.shape[0])
-#        print('loss: ---------------------')
-#        print(loss)
         return loss
 
     def gradient(self, scaling_factor=1.):
         grad = (self.y_pred - self.y_label)
-#        print('grad: ---------------------')
-#        print(grad)
         return grad
 
