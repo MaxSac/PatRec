@@ -1,4 +1,5 @@
 import numpy as np
+
 class Fully_Connected_Layer(object):
     def __init__(self, n_input, n_output):
         self.n_input = n_input 
@@ -53,14 +54,28 @@ class Perceptron:
         self.fc_lay.gradient_weights = topgradient
 
         delta = topgradient*np.transpose(activat)
+        print('delta: ', delta.shape)
+        print(delta)
+
         topgradient = np.dot(weights, delta)
+        print('topgradient: ', topgradient.shape)
+        print(topgradient)
 
         return topgradient
 
     def apply_update(self, learning_rate):
         delta_weight = np.dot(self.fc_lay.gradient_weights,
                 self.fc_lay.backward())
+        # Hier ist die entschiendende stelle wo etwas schief laueft !!!
+        print('1: ', self.fc_lay.gradient_weights)
+        print('2: ', self.fc_lay.backward())
+        print('Weights before: ', self.fc_lay.weights.shape)
+        print(self.fc_lay.weights)
+        print('apply update:',delta_weight.shape)
+        print(delta_weight)
         self.fc_lay.weights -= learning_rate*np.transpose(delta_weight)
+        print('Weights after: ', self.fc_lay.weights.shape)
+        print(self.fc_lay.weights)
             
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
@@ -79,6 +94,7 @@ class MultilayerPerceptron:
         last_n = n_input
         self.loss = loss 
         self.learning_rate = learning_rate
+        self.batch_size = batch_size
         for dim in n_hidden:
             self.layers.append(
                     Perceptron(last_n, dim, activation_function_hidden, 
@@ -97,11 +113,13 @@ class MultilayerPerceptron:
 
 
     def backward(self, topgradient=None):
-        grad_loss = self.layers[-1].loss.gradient()
+        grad_loss = self.loss.gradient()
         grad_acti = self.layers[-1].activation_function.backward()
         weights_without_bios = self.layers[-1].fc_lay.backward()[:,1:]
 
         loc_error = grad_loss # lokaler Fehler 
+        print('Local error')
+        print(loc_error)
         topgradient = np.transpose(loc_error)
 
         for perc in self.layers[-1::-1]:
@@ -109,17 +127,19 @@ class MultilayerPerceptron:
 
     def apply_update(self, learning_rate):
         self.backward()
-        for perc in self.layers:
+        for perc in self.layers[::-1]:
             perc.apply_update(learning_rate)
 
     def estimate(self,train_samples, train_labels):
-        y_pred = self.forward(train_samples)
-        print(y_pred)
-        self.loss.loss(y_pred, train_labels)
-        for x in range(10):
+        for x in range(1):
+            rnd_ch = np.random.choice(
+                    train_samples.shape[0], 
+                    self.batch_size, 
+                    replace=False)
+            y_pred = self.forward(train_samples[rnd_ch])
+            self.loss.loss(y_pred, train_labels[rnd_ch])
             self.apply_update(self.learning_rate)
-            y_pred = self.forward(train_samples)
-            print(y_pred)
+        y_pred = self.forward(train_samples)
 
 class EuclideanLoss(object):
     def __init__(self):
@@ -135,6 +155,6 @@ class EuclideanLoss(object):
         return loss
 
     def gradient(self, scaling_factor=1.):
-        grad = (self.y_pred - self.y_label)
+        grad = scaling_factor*(self.y_label - self.y_pred)
         return grad
 
