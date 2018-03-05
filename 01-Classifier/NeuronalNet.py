@@ -33,7 +33,7 @@ class SigmoidLayer(object):
 
 class Perceptron:
     def __init__(self, n_input, n_output, activation_function, loss, batch_size,
-            epochs, learning_rate):
+            epochs, learning_rate, momentum):
         self.activation_function= SigmoidLayer()
         self.fc_lay = Fully_Connected_Layer(n_input, n_output)
 
@@ -41,6 +41,7 @@ class Perceptron:
         self.batch_size = batch_size
         self.epochs = epochs
         self.learning_rate = learning_rate
+        self.momentum = momentum
 
     def forward(self, x_input):
         x_ful_input = self.fc_lay.forward(x_input)
@@ -62,6 +63,7 @@ class Perceptron:
     def apply_update(self, learning_rate):
         delta_weight = np.dot(self.fc_lay.gradient_weights,
                 self.fc_lay.backward())
+        self.fc_lay.weights *= self.momentum
         self.fc_lay.weights += learning_rate*np.transpose(delta_weight)
             
     def estimate(self,train_samples, train_labels):
@@ -82,15 +84,17 @@ class MultilayerPerceptron:
         self.loss = loss 
         self.learning_rate = learning_rate
         self.batch_size = batch_size
+        self.momentum = momentum
+        self.epochs = epochs
         for dim in n_hidden:
             self.layers.append(
                     Perceptron(last_n, dim, activation_function_hidden, 
-                        loss, batch_size, epochs, learning_rate)
+                        loss, batch_size, epochs, learning_rate, momentum)
             )
             last_n = dim
         self.layers.append(
                Perceptron(last_n, n_output, activation_function_output, 
-                   loss, batch_size, epochs, learning_rate)
+                   loss, batch_size, epochs, learning_rate,momentum)
         )
         
     def forward(self, x_input):
@@ -116,19 +120,14 @@ class MultilayerPerceptron:
             perc.apply_update(learning_rate)
 
     def estimate(self,train_samples, train_labels):
-        for x in range(200):
+        for x in range(self.epochs):
             rnd_ch = np.random.choice(
                     train_samples.shape[0], 
                     self.batch_size, 
-                    replace=False)
-            y_pred_b = self.forward(train_samples[rnd_ch])
-            self.loss.loss(y_pred_b, train_labels[rnd_ch])
+                    replace=True)
+            y_pred = self.forward(train_samples[rnd_ch])
+            Loss = self.loss.loss(y_pred, train_labels[rnd_ch])
             self.apply_update(self.learning_rate)
-            y_pred_a = self.forward(train_samples[rnd_ch])
-            print('Value before:', np.round(y_pred_b,2) , ' after: ',
-                    np.round(y_pred_a,2), 'truelabel',
-                    train_labels[rnd_ch])
-        y_pred = self.forward(train_samples)
 
 class EuclideanLoss(object):
     def __init__(self):

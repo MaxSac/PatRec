@@ -9,7 +9,7 @@ print('Data Info: -------------------------------')
 train_data = np.array([[0,1],[0,1],[0,1],[1,1],[1,1],[1,1],[1,1]])
 print('train_data:', train_data.shape)
 print(train_data)
-train_label = np.array([[0],[0],[0],[1],[1],[1],[1]])
+train_label = np.array([[0,1],[0,1],[0,1],[1,0],[1,0],[1,0],[1,0]])
 print('train_label:', train_label.shape)
 print(train_label)
 
@@ -28,11 +28,12 @@ print(train_label)
 # print(Perc.forward(np.array(train_data)))
 
 print('MultilayerPerceptron Info: -------------------------------')
-multi_Perc = NN.MultilayerPerceptron(2,[2],
-         1,Sigmoid,Sigmoid,L2,5,1,1,1)
+multi_Perc = NN.MultilayerPerceptron(2,[2,2],
+         2,Sigmoid,Sigmoid,L2,7,10000,0.1,1)
 
 # print(multi_Perc.forward(train_data[:1]))
 # print('-------------')
 # print('Training data: ', train_data[:1])
 multi_Perc.estimate(normalize(train_data), normalize(train_label))
+print(multi_Perc.forward(normalize(train_data)))
 # #multi_Perc.estimate(np.array([[7,11,1,2], [7,11,1,2]]),np.array([[1], [1]]))
