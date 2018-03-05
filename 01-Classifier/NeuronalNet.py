@@ -54,28 +54,15 @@ class Perceptron:
         self.fc_lay.gradient_weights = topgradient
 
         delta = topgradient*np.transpose(activat)
-        print('delta: ', delta.shape)
-        print(delta)
 
         topgradient = np.dot(weights, delta)
-        print('topgradient: ', topgradient.shape)
-        print(topgradient)
 
         return topgradient
 
     def apply_update(self, learning_rate):
         delta_weight = np.dot(self.fc_lay.gradient_weights,
                 self.fc_lay.backward())
-        # Hier ist die entschiendende stelle wo etwas schief laueft !!!
-        print('1: ', self.fc_lay.gradient_weights)
-        print('2: ', self.fc_lay.backward())
-        print('Weights before: ', self.fc_lay.weights.shape)
-        print(self.fc_lay.weights)
-        print('apply update:',delta_weight.shape)
-        print(delta_weight)
-        self.fc_lay.weights -= learning_rate*np.transpose(delta_weight)
-        print('Weights after: ', self.fc_lay.weights.shape)
-        print(self.fc_lay.weights)
+        self.fc_lay.weights += learning_rate*np.transpose(delta_weight)
             
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
@@ -118,8 +105,6 @@ class MultilayerPerceptron:
         weights_without_bios = self.layers[-1].fc_lay.backward()[:,1:]
 
         loc_error = grad_loss # lokaler Fehler 
-        print('Local error')
-        print(loc_error)
         topgradient = np.transpose(loc_error)
 
         for perc in self.layers[-1::-1]:
@@ -131,14 +116,18 @@ class MultilayerPerceptron:
             perc.apply_update(learning_rate)
 
     def estimate(self,train_samples, train_labels):
-        for x in range(1):
+        for x in range(200):
             rnd_ch = np.random.choice(
                     train_samples.shape[0], 
                     self.batch_size, 
                     replace=False)
-            y_pred = self.forward(train_samples[rnd_ch])
-            self.loss.loss(y_pred, train_labels[rnd_ch])
+            y_pred_b = self.forward(train_samples[rnd_ch])
+            self.loss.loss(y_pred_b, train_labels[rnd_ch])
             self.apply_update(self.learning_rate)
+            y_pred_a = self.forward(train_samples[rnd_ch])
+            print('Value before:', np.round(y_pred_b,2) , ' after: ',
+                    np.round(y_pred_a,2), 'truelabel',
+                    train_labels[rnd_ch])
         y_pred = self.forward(train_samples)
 
 class EuclideanLoss(object):
@@ -150,7 +139,7 @@ class EuclideanLoss(object):
         self.y_label = y_label
         self.y_pred = y_pred
 
-        squares = np.square(self.y_pred - self.y_label)
+        squares = np.square(self.y_label - self.y_pred )
         loss = np.sum(squares, axis=0)/(2*squares.shape[0])
         return loss
 

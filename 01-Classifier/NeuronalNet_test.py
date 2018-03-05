@@ -6,10 +6,10 @@ L2 = NN.EuclideanLoss()
 Sigmoid = NN.SigmoidLayer()
 
 print('Data Info: -------------------------------')
-train_data = np.array([[0],[0],[0],[0.5],[1],[1],[1],[1]])
+train_data = np.array([[0,1],[0,1],[0,1],[1,1],[1,1],[1,1],[1,1]])
 print('train_data:', train_data.shape)
 print(train_data)
-train_label = np.array([[0],[0],[0],[0.5],[1],[1],[1],[1]])
+train_label = np.array([[0],[0],[0],[1],[1],[1],[1]])
 print('train_label:', train_label.shape)
 print(train_label)
 
@@ -28,8 +28,8 @@ print(train_label)
 # print(Perc.forward(np.array(train_data)))
 
 print('MultilayerPerceptron Info: -------------------------------')
-multi_Perc = NN.MultilayerPerceptron(1,[2],
-         1,Sigmoid,Sigmoid,L2,6,1,0.1,1)
+multi_Perc = NN.MultilayerPerceptron(2,[2],
+         1,Sigmoid,Sigmoid,L2,5,1,1,1)
 
 # print(multi_Perc.forward(train_data[:1]))
 # print('-------------')
