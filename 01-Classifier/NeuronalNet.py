@@ -48,23 +48,15 @@ class Perceptron:
         x_act_input = self.activation_function.forward(x_ful_input)
         return x_act_input
 
-    def backward(self, topgradient):
-        weights = self.fc_lay.weights[1:,:] # weights ohne Bios
+    def backward(self, topgradient=None):
+        weights = self.fc_lay.weights[1:,:] # weights ohne Bias
         activat = self.activation_function.backward()
-        
-        self.fc_lay.gradient_weights = topgradient
 
-        delta = topgradient*np.transpose(activat)
-
-        topgradient = np.dot(weights, delta)
-
-        return topgradient
+        return weights, activat
 
     def apply_update(self, learning_rate):
-        delta_weight = np.dot(self.fc_lay.gradient_weights,
-                self.fc_lay.backward())
-        self.fc_lay.weights *= self.momentum
-        self.fc_lay.weights += learning_rate*np.transpose(delta_weight)
+        print(self.fc_lay.gradient_weights)
+        self.fc_lay.weights -= learning_rate*self.fc_lay.gradient_weights
             
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
@@ -105,28 +97,52 @@ class MultilayerPerceptron:
 
     def backward(self, topgradient=None):
         grad_loss = self.loss.gradient()
-        grad_acti = self.layers[-1].activation_function.backward()
-        weights_without_bios = self.layers[-1].fc_lay.backward()[:,1:]
+        d_activat_Out = self.layers[-1].activation_function.backward()
+        new_weights, _ = self.layers[-1].backward()
 
-        loc_error = grad_loss # lokaler Fehler 
-        topgradient = np.transpose(loc_error)
+        print('Grad loss:', grad_loss.shape)
+        print(grad_loss)
+        print('d_activat_Out:', d_activat_Out.shape)
+        print(d_activat_Out)
+        topgradient = [grad_loss * d_activat_Out] # local error
 
-        for perc in self.layers[-1::-1]:
-           topgradient = perc.backward(topgradient)
+        for perc in self.layers[-2::-1]:
+#            print('Topgradient: ', topgradient[-1].shape)
+#            print(topgradient[-1])
+
+            old_weights = new_weights
+            
+            print('old_weights: ', old_weights.shape)
+            print(old_weights)
+
+            new_weights, d_activat = perc.backward()
+            prod = np.dot(topgradient[-1], old_weights) 
+            print('Topgradient:', topgradient[-1])
+            topgradient.append(d_activat * prod)
+            print('Topgradient:', topgradient)
+        return topgradient
 
     def apply_update(self, learning_rate):
-        self.backward()
-        for perc in self.layers[::-1]:
+        topgradient = self.backward()
+        for perc, top in zip(self.layers[-1::-1], topgradient):
+            perc.fc_lay.gradient_weights = np.transpose(
+                np.dot(np.transpose(top), perc.fc_lay.backward()))
+#            print('Weights before:', perc.fc_lay.weights.shape)
+#            print(perc.fc_lay.weights)
             perc.apply_update(learning_rate)
+#            print('Weights after:', perc.fc_lay.weights.shape)
+#            print(perc.fc_lay.weights)
 
     def estimate(self,train_samples, train_labels):
         for x in range(self.epochs):
             rnd_ch = np.random.choice(
                     train_samples.shape[0], 
                     self.batch_size, 
-                    replace=True)
+                    replace=False)
             y_pred = self.forward(train_samples[rnd_ch])
-            Loss = self.loss.loss(y_pred, train_labels[rnd_ch])
+            # print('v_pred', y_pred)
+            # print('train_label', train_labels)
+            self.loss.loss(y_pred, train_labels[rnd_ch])
             self.apply_update(self.learning_rate)
 
 class EuclideanLoss(object):
@@ -144,5 +160,8 @@ class EuclideanLoss(object):
 
     def gradient(self, scaling_factor=1.):
         grad = scaling_factor*(self.y_label - self.y_pred)
+        # print('label', self.y_label)
+        # print('pred', self.y_pred)
+        # print('Gradient loss:', grad)
         return grad
 
