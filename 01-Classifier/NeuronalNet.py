@@ -55,8 +55,11 @@ class Perceptron:
         return weights, activat
 
     def apply_update(self, learning_rate):
-        print(self.fc_lay.gradient_weights)
-        self.fc_lay.weights -= learning_rate*self.fc_lay.gradient_weights
+        # print('delta W: ',self.fc_lay.gradient_weights)
+        # print('old W: ',self.fc_lay.weights)
+        self.fc_lay.weights += learning_rate*self.fc_lay.gradient_weights
+        # print('new W: ',self.fc_lay.weights)
+
             
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
@@ -100,10 +103,10 @@ class MultilayerPerceptron:
         d_activat_Out = self.layers[-1].activation_function.backward()
         new_weights, _ = self.layers[-1].backward()
 
-        print('Grad loss:', grad_loss.shape)
-        print(grad_loss)
-        print('d_activat_Out:', d_activat_Out.shape)
-        print(d_activat_Out)
+        # print('Grad loss:', grad_loss.shape)
+        # print(grad_loss)
+        # print('d_activat_Out:', d_activat_Out.shape)
+        # print(d_activat_Out)
         topgradient = [grad_loss * d_activat_Out] # local error
 
         for perc in self.layers[-2::-1]:
@@ -112,14 +115,16 @@ class MultilayerPerceptron:
 
             old_weights = new_weights
             
-            print('old_weights: ', old_weights.shape)
-            print(old_weights)
+            # print('old_weights: ', old_weights.shape)
+            # print(old_weights)
 
             new_weights, d_activat = perc.backward()
-            prod = np.dot(topgradient[-1], old_weights) 
-            print('Topgradient:', topgradient[-1])
+            prod = np.dot(topgradient[-1], np.transpose(old_weights))
+            # print('Topgradient:', topgradient[-1])
+            # print('Prod: ', prod)
+            # print('d_activat:', d_activat)
             topgradient.append(d_activat * prod)
-            print('Topgradient:', topgradient)
+            # print('Topgradient:', topgradient[-1])
         return topgradient
 
     def apply_update(self, learning_rate):
