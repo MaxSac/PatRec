@@ -55,11 +55,7 @@ class Perceptron:
         return weights, activat
 
     def apply_update(self, learning_rate):
-        # print('delta W: ',self.fc_lay.gradient_weights)
-        # print('old W: ',self.fc_lay.weights)
         self.fc_lay.weights += learning_rate*self.fc_lay.gradient_weights
-        # print('new W: ',self.fc_lay.weights)
-
             
     def estimate(self,train_samples, train_labels):
         y_pred = self.forward(train_samples)
@@ -102,29 +98,13 @@ class MultilayerPerceptron:
         grad_loss = self.loss.gradient()
         d_activat_Out = self.layers[-1].activation_function.backward()
         new_weights, _ = self.layers[-1].backward()
-
-        # print('Grad loss:', grad_loss.shape)
-        # print(grad_loss)
-        # print('d_activat_Out:', d_activat_Out.shape)
-        # print(d_activat_Out)
         topgradient = [grad_loss * d_activat_Out] # local error
 
         for perc in self.layers[-2::-1]:
-#            print('Topgradient: ', topgradient[-1].shape)
-#            print(topgradient[-1])
-
             old_weights = new_weights
-            
-            # print('old_weights: ', old_weights.shape)
-            # print(old_weights)
-
             new_weights, d_activat = perc.backward()
             prod = np.dot(topgradient[-1], np.transpose(old_weights))
-            # print('Topgradient:', topgradient[-1])
-            # print('Prod: ', prod)
-            # print('d_activat:', d_activat)
             topgradient.append(d_activat * prod)
-            # print('Topgradient:', topgradient[-1])
         return topgradient
 
     def apply_update(self, learning_rate):
@@ -132,11 +112,7 @@ class MultilayerPerceptron:
         for perc, top in zip(self.layers[-1::-1], topgradient):
             perc.fc_lay.gradient_weights = np.transpose(
                 np.dot(np.transpose(top), perc.fc_lay.backward()))
-#            print('Weights before:', perc.fc_lay.weights.shape)
-#            print(perc.fc_lay.weights)
             perc.apply_update(learning_rate)
-#            print('Weights after:', perc.fc_lay.weights.shape)
-#            print(perc.fc_lay.weights)
 
     def estimate(self,train_samples, train_labels):
         for x in range(self.epochs):
@@ -145,8 +121,6 @@ class MultilayerPerceptron:
                     self.batch_size, 
                     replace=False)
             y_pred = self.forward(train_samples[rnd_ch])
-            # print('v_pred', y_pred)
-            # print('train_label', train_labels)
             self.loss.loss(y_pred, train_labels[rnd_ch])
             self.apply_update(self.learning_rate)
 
@@ -165,8 +139,5 @@ class EuclideanLoss(object):
 
     def gradient(self, scaling_factor=1.):
         grad = scaling_factor*(self.y_label - self.y_pred)
-        # print('label', self.y_label)
-        # print('pred', self.y_pred)
-        # print('Gradient loss:', grad)
         return grad
 
