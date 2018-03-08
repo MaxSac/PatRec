@@ -3,13 +3,17 @@ import matplotlib.pyplot as plt
 from sklearn.datasets.samples_generator import make_blobs
 
 
-def make_data():
-    X_data, y_label = make_blobs(n_samples=50, centers=2, n_features=2,
-                                 random_state=0, cluster_std=0.3)
-    return X_data, y_label
+def make_data(n):
+    """Make random data"""
+    x_data, y_label = make_blobs(
+        n_samples=n,
+        centers=2, n_features=2,
+        random_state=0, cluster_std=0.3,
+    )
+    return x_data, y_label
 
 
-def plot(data, label, train=True):
+def plot(data, label):
     """Plots label-colored data (2D)"""
     fig, ax = plt.subplots()
     for lab, c in zip(np.unique(label), ['red', 'green']):
@@ -18,8 +22,8 @@ def plot(data, label, train=True):
             data[:, 1][(label == lab)],
             color=c,
         )
-    fig.savefig('train_svm.png')
     print('Data plotted.')
+    return fig, ax
 
 
 class SVM:
@@ -27,6 +31,7 @@ class SVM:
     def __init__(self):
         self.w = None  # Normalenvektor
         self.b = None  # y-Achsenabschnitt (Bias)
+        self.alpha = None  # Lagrangemultiplikatoren
 
     def fit(self, train, label):
         """Train SVM"""
@@ -41,12 +46,11 @@ class SVM:
         return classification
 
 
-# def test_svm():
-#     svm = SVM()
-#     svm.w = np.array([1, 0])
-#     svm.b = 0
-#     print(svm.estimate(train) == label[:, 0])
+def main():
+    x_data, y_label = make_data(50)
+    fig, ax = plot(x_data, y_label)
+    # fig.savefig('train_svm.png')
 
-x_data, y_label = make_data()
-plot(x_data, y_label)
-# test_svm()
+
+if __name__ == '__main__':
+    main()
