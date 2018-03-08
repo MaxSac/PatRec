@@ -4,9 +4,10 @@ from sklearn.datasets.samples_generator import make_blobs
 
 
 def make_data():
-    X_data, y_label = make_blobs(n_samples=10, centers=3, n_features=2,
-                  random_state=0)
+    X_data, y_label = make_blobs(n_samples=50, centers=2, n_features=2,
+                                 random_state=0, cluster_std=0.3)
     return X_data, y_label
+
 
 def plot(data, label, train=True):
     """Plots label-colored data (2D)"""
@@ -19,6 +20,7 @@ def plot(data, label, train=True):
         )
     fig.savefig('train_svm.png')
     print('Data plotted.')
+
 
 class SVM:
     """Support Vector Machine"""
