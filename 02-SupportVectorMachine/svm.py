@@ -1,36 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.datasets.samples_generator import make_blobs
 
-train = np.array(
-    [
-        [-1, -5], [-1, -4], [-1, -3], [-1, -2], [-1, -1], [-1, 0], [-1, 1], [-1, 2], [-1, 3], [-1, 4], [-1, 5],
-        [1, -5], [1, -4], [1, -3], [1, -2], [1, -1], [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5],
-    ]
-)
 
-label = np.array(
-    [
-        [-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1],
-        [1], [1], [1], [1], [1], [1], [1], [1], [1], [1], [1],
-    ]
-)
-
+def make_data():
+    X_data, y_label = make_blobs(n_samples=10, centers=3, n_features=2,
+                  random_state=0)
+    return X_data, y_label
 
 def plot(data, label, train=True):
     """Plots label-colored data (2D)"""
     fig, ax = plt.subplots()
     for lab, c in zip(np.unique(label), ['red', 'green']):
         ax.scatter(
-            data[:, 0][(label == lab)[:, 0]],
-            data[:, 1][(label == lab)[:, 0]],
+            data[:, 0][(label == lab)],
+            data[:, 1][(label == lab)],
             color=c,
         )
     fig.savefig('train_svm.png')
     print('Data plotted.')
-
-
-# plot(train, label)
-
 
 class SVM:
     """Support Vector Machine"""
@@ -51,11 +39,12 @@ class SVM:
         return classification
 
 
-def test_svm():
-    svm = SVM()
-    svm.w = np.array([1, 0])
-    svm.b = 0
-    print(svm.estimate(train) == label[:, 0])
+# def test_svm():
+#     svm = SVM()
+#     svm.w = np.array([1, 0])
+#     svm.b = 0
+#     print(svm.estimate(train) == label[:, 0])
 
-
-test_svm()
+x_data, y_label = make_data()
+plot(x_data, y_label)
+# test_svm()
