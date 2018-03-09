@@ -26,9 +26,33 @@ class SVM:
         self.w = None  # Normalenvektor
         self.b = None  # y-Achsenabschnitt (Bias)
 
+    def gradient_normal(self, w, support, label, data):
+        return w - np.sum(np.dot(support*label,data), axis=0)
+
+    def gradient_bios(self, support, label):
+        return np.sum(support*label)
+
+    def gradient_support(self, label, data, w, bios):
+        return label*data*w 
+    
     def fit(self, train, label):
         """Train SVM"""
-        pass
+        self.data = train 
+        self.label = label
+        self.w = np.ones(self.data.shape[1])
+        self.bios = np.zeros(self.w.shape[0] - 1)
+        self.support = np.ones(label.shape)/len(self.label) 
+
+        self.w -= self.gradient_normal(self.w, self.support, 
+                self.label, self.data)
+
+        self.bios -= self.gradient_bios(self.support, self.label)
+
+        self.support -= self.gradient_support(self.label, self.data, self.w,
+                self.bios)
+        print(self.support)
+
+
 
     def estimate(self, x):
         """Classify data.
@@ -39,12 +63,13 @@ class SVM:
         return classification
 
 
-# def test_svm():
-#     svm = SVM()
-#     svm.w = np.array([1, 0])
-#     svm.b = 0
-#     print(svm.estimate(train) == label[:, 0])
+def test_svm():
+    svm = SVM()
+    svm.w = np.array([1, 0])
+    svm.b = 0
+    svm.fit(x_data, y_label)
+    # print(svm.estimate(train) == label[:, 0])
 
 x_data, y_label = make_data()
 plot(x_data, y_label)
-# test_svm()
+test_svm()
