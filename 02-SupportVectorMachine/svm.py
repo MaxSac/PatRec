@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets.samples_generator import make_blobs
+from sklearn.preprocessing import normalize
 
 
 def make_data(n):
@@ -26,6 +27,15 @@ def plot(data, label):
     return fig, ax
 
 
+def plot_hyperplane(w, b, data, label):
+    fig, ax = plot(data, label)
+    x = np.linspace(0, 3, len(label))
+    # ax.plot(x, (- w[0] * x + b) / w[1], label='"Normal"')
+    ax.plot(x, w[1] * x + b, label='"Vektor"')
+    fig.legend()
+    return fig, ax
+
+
 class SVM:
     """Support Vector Machine"""
     def __init__(self):
@@ -35,14 +45,29 @@ class SVM:
 
     def fit(self, train, label):
         """Train SVM"""
-        pass
+        learning_rate = 0.9
+
+        # Normalenvektor schätzen und normieren
+        new_w = self.w - learning_rate * (self.w - np.dot(label * self.alpha, train))
+        new_w = np.abs(new_w / np.linalg.norm(new_w))
+
+        # Lagrangemultiplikatoren schätzen und normieren
+        new_alpha = self.alpha - learning_rate * label * (np.dot(self.w, np.transpose(train)) + self.b - 1)
+        new_alpha = new_alpha / np.sum(new_alpha)
+
+        # y-Achsenabschnitt schätzen und normieren
+        new_b = self.b - - learning_rate * np.dot(self.alpha, label)
+
+        self.w = new_w
+        self.alpha = new_alpha
+        self.b = new_b
 
     def estimate(self, x):
         """Classify data.
         Liegt der Punkt links oder rechts von der Trennebene?
         $sign(x \cdot w + b)$
         """
-        classification = np.sign(np.dot(x, self.w) + self.b)
+        classification = np.sign(np.dot(self.w, self.w) + self.b)
         return classification
 
 

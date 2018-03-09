@@ -1,7 +1,8 @@
 """pytest"""
 from svm import *
+import fire
 
-n = 10
+n = 50
 x_data, y_label = make_data(n)
 
 
@@ -44,25 +45,35 @@ def test_prediction():
     assert np.mean(svm.estimate(x_data) == y_label) > acc
 
 
-def test():
+def test(iterations):
     """Diese Funktion wird bei `python test_svm.py` gerufen!"""
     print('Support Vector Machine (SVM):')
-    print('-----------------------------')
+    print('=============================')
 
     svm = environment()
-    svm.fit(x_data, y_label)
+    svm.w = np.array([1, 1])
+    svm.b = 1
+    svm.alpha = np.ones(len(x_data))
+
+    for i in range(iterations):
+        # print('Iteration {}'.format(i))
+        svm.fit(x_data, y_label)
+
+        # print('Normalenvektor', svm.w)
+        # print('Lagrangemultiplikatoren', svm.alpha)
+        # print('y-Achsenabschnitt', svm.b)
+
+    print(svm.b)
+
+    fig, ax = plot_hyperplane(svm.w, svm.b, x_data, y_label)
+    fig.savefig('hyperplane.png')
 
     print('Prediction:')
+    print('-----------')
     print(svm.estimate(x_data) == y_label)
-    # print(np.mean(svm.estimate(x_data) == y_label))
-    # print('Alpha', svm.alpha.shape)
-    # print(svm.alpha)
-    # print('Normalenvironmentektor', svm.w.shape)
-    # print(svm.w)
-    # print('Achsenabschnitt')
-    # print(svm.b)
+    print('Acc:', np.mean(svm.estimate(x_data) == y_label))
     pass
 
 
 if __name__ == '__main__':
-    test()
+    fire.Fire(test)
