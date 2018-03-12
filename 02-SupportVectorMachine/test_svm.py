@@ -24,6 +24,10 @@ def test_normalvector_shape():
     gradient_weight = svm.gradient_weight(x_data, y_label)
     assert gradient_weight.shape == (x_data.shape[1], )
 
+def test_train_data():
+    x_data, y_label = make_data(30)
+    assert np.sum(y_label == 1) == np.sum(y_label == 0)
+
 
 # def test_bias_type():
 #     """Teste, ob der Achsenabschnitt ein Skalar ist."""
@@ -60,8 +64,9 @@ def func(iterations):
     print('Lagrangemultiplikatoren', svm.alpha)
     print('y-Achsenabschnitt', svm.b)
 
-    # fig, ax = plot_hyperplane(svm.w, svm.b, x_data, y_label)
-    # fig.savefig('hyperplane.png')
+    #fig, ax = Plotter().plot_hyperplane(svm.w, svm.b, x_data, y_label)
+    fig, ax = Plotter().plot_label(x_data, y_label)
+    fig.savefig('hyperplane.png')
 
     # print('Prediction:')
     # print('-----------')

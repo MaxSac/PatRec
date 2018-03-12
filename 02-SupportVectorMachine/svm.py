@@ -23,15 +23,15 @@ class Plotter:
         fig, ax = plt.subplots()
         for lab, c in zip(np.unique(label), ['red', 'green']):
             ax.scatter(
-                data[:, 0][(label == lab)],
-                data[:, 1][(label == lab)],
+                data[:, 0][label == lab],
+                data[:, 1][label == lab],
                 color=c,
             )
         print('Data plotted.')
         return fig, ax
 
     def plot_hyperplane(self, w, b, data, label):
-        fig, ax = plot(data, label)
+        fig, ax = self.plot_label(data, label)
         x = np.linspace(0, 3, len(label))
         # ax.plot(x, (- w[0] * x + b) / w[1], label='"Normal"')
         ax.plot(x, w[1] * x + b)
