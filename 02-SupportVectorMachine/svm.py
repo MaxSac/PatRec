@@ -47,7 +47,7 @@ class SVM:
         self.alpha = None  # Lagrangemultiplikatoren
         self.learning_rate = learning_rate
         self.epochs = epochs
-    
+
     def gradient_weight(self, data, label):
         return self.w - np.dot((self.alpha * label), data)
 
@@ -59,8 +59,8 @@ class SVM:
 
     def encode_labels(self, label):
         u_label = np.unique(label)
-        label[u_label[0]] = -1
-        label[u_label[1]] = 1
+        label[label == u_label[0]] = -1
+        label[label == u_label[1]] = 1
         return label
 
     def estimate(self, train, label):
