@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.preprocessing import normalize
+from tqdm import tqdm
 
 
 def make_data(n):
@@ -9,7 +10,7 @@ def make_data(n):
     x_data, y_label = make_blobs(
         n_samples=n,
         centers=2, n_features=2,
-        random_state=0, cluster_std=0.3,
+        random_state=0, cluster_std=0.7,
     )
     return x_data, y_label
 
@@ -34,14 +35,21 @@ class Plotter:
         fig, ax = self.plot_label(data, label)
         x = np.linspace(0, 3, len(label))
         # ax.plot(x, (- w[0] * x + b) / w[1], label='"Normal"')
-        ax.plot(x, w[1] * x + b)
+        ax.plot(x, (- b - w[0] * x) / w[1])
         # fig.legend()
+        return fig, ax
+
+    def plot_supportvectors(self, fig, ax, data, alpha):
+        ax.scatter(
+            data[:, 0][alpha != 0], data[:, 1][alpha != 0],
+            marker='o', c='k', s=5,
+        )
         return fig, ax
 
 
 class SVM:
     """Support Vector Machine"""
-    def __init__(self, learning_rate=0.05, epochs=1):
+    def __init__(self, learning_rate=0.1, epochs=1):
         self.w = None  # Normalenvektor
         self.b = None  # y-Achsenabschnitt (Bias)
         self.alpha = None  # Lagrangemultiplikatoren
@@ -68,10 +76,10 @@ class SVM:
 
         self.w = np.ones(train.shape[1])
         self.alpha = np.ones(train.shape[0])
-        self.alpha = self.alpha / np.linalg.norm(self.alpha)
+        self.alpha /= np.sum(self.alpha)
         self.b = np.ones(train.shape[1] - 1)
 
-        for i in range(self.epochs):
+        for i in tqdm(range(self.epochs)):
             self.fit(train, label)
 
     def fit(self, train, label):
@@ -79,28 +87,14 @@ class SVM:
         self.w /= np.linalg.norm(self.w)
         self.b -= self.learning_rate * self.gradient_bias(train, label)
         self.alpha -= self.learning_rate * self.gradient_alpha(train, label)
-        print(self.gradient_alpha(train, label))
+        self.alpha[self.alpha < 1/train.shape[0]] = 0
+        self.alpha /= np.sum(self.alpha)
+        # print(self.gradient_alpha(train, label))
 
     def classify(self, data):
         """Classify data.
         Liegt der Punkt links oder rechts von der Trennebene?
         $sign(x \cdot w + b)$
         """
-        classification = np.sign(np.dot(self.w, self.w) + self.b)
+        classification = np.sign(np.dot(data, self.w) + self.b)
         return classification
-
-
-# def test_svm():
-#     svm = SVM()
-#     svm.estimate(x_data, y_label)
-
-def main(number_samples):
-    x_data, y_label = make_data(50)
-    svm = SVM()
-    svm.fit(x_data, y_label)
-    fig, ax = plot(x_data, y_label)
-    fig.show()
-
-
-if __name__ == '__main__':
-    main(number_samples)
